@@ -39,4 +39,18 @@ public class Book {
     @Version
     private Long version;
 
+    public boolean hasStock(int quantity) {
+        return stock >= quantity;
+    }
+
+    public void reduceStock(int quantity) {
+        if (quantity <= 0) {
+            throw new IllegalArgumentException("Quantity to reduce must be positive");
+        }
+        if (!hasStock(quantity)) {
+            throw new IllegalStateException("Insufficient stock for book id = " + id);
+        }
+        this.stock -= quantity;
+    }
+
 }
