@@ -31,4 +31,14 @@ public class OrderItem {
 
     @Column(nullable = false, precision = 10, scale = 2)
     private BigDecimal unitPrice;
+
+    public OrderItem(Book book, int quantity, BigDecimal unitPrice){
+        this.book = book;
+        this.quantity = quantity;
+        this.unitPrice = unitPrice;
+    }
+    public BigDecimal getLineTotal(){
+        return unitPrice.multiply(BigDecimal.valueOf(quantity));
+    }
+
 }

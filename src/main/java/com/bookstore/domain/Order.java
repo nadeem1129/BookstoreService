@@ -41,4 +41,16 @@ public class Order {
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
+    public void addItem(OrderItem item) {
+        item.setOrder(this);
+        items.add(item);
+    }
+
+    public void recalculateTotal() {
+        this.totalAmount = items.stream().map(OrderItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    public void markPaid() {
+        this.status = OrderStatus.PAID;
+    }
+
 }
