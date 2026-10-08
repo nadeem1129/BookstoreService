@@ -39,11 +39,11 @@ public class SecurityConfig {
                     .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                     .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                     .authorizeHttpRequests(auth -> auth
-                            .requestMatchers("/api/auth/ ** ").permitAll()
-                            .requestMatchers(HttpMethod.GET, "/api/books/ ** ").permitAll()
-                            .requestMatchers("/h2-console/ ** ").permitAll()
+                            .requestMatchers("/api/auth/**").permitAll()
+                            .requestMatchers(HttpMethod.GET, "/api/books/**").permitAll()
+                            .requestMatchers("/h2-console/**").permitAll()
                             .anyRequest().authenticated())
-// Allow H2 console frames during local development.
+                     // Allow H2 console frames during local development.
                     .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                     .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
                             UsernamePasswordAuthenticationFilter.class);
@@ -58,7 +58,7 @@ public class SecurityConfig {
                 config.setAllowedHeaders(List.of("*"));
                 config.setAllowCredentials(true);
                 UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-                source.registerCorsConfiguration("/ ** ", config);
+                source.registerCorsConfiguration("/** ", config);
                 return source;
             }
             @Bean
@@ -67,8 +67,7 @@ public class SecurityConfig {
             }
 
             @Bean
-            public AuthenticationManager authenticationManager (AuthenticationConfiguration configuration) throws Exception
-            {
+            public AuthenticationManager authenticationManager (AuthenticationConfiguration configuration) throws Exception {
                 return configuration.getAuthenticationManager();
             }
     }
