@@ -1,6 +1,7 @@
 package com.bookstore.service.impl;
 
 import com.bookstore.dto.BookDto;
+import com.bookstore.exception.ResourceNotFoundException;
 import com.bookstore.mapper.DtoMapper;
 import com.bookstore.repository.BookRepository;
 import com.bookstore.service.BookService;
@@ -25,6 +26,6 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public BookDto getBookById(Long id) {
-        return null;
+        return bookRepository.findById(id).map(DtoMapper::toBookDto).orElseThrow(() -> new ResourceNotFoundException("Book", id));
     }
 }
