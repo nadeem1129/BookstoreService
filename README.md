@@ -63,6 +63,41 @@ The app uses an embedded H2 database and is configured in `src/main/resources/ap
 - Password: empty string
 - H2 console: `http://localhost:8080/h2-console`
 
+### JWT signing key
+
+The application requires the `JWT_SIGNING_SECRET` environment variable to start. It must be a Base64-encoded key containing at least 32 random bytes (256 bits), used to sign and verify JWTs. Generate a fresh key for local development; do not commit it or reuse a sample key in production.
+
+Generate a key with OpenSSL:
+
+```bash
+openssl rand -base64 32
+```
+
+Set the generated value in the same terminal session before starting the app.
+
+Linux/macOS:
+
+```bash
+export JWT_SIGNING_SECRET="<generated-key>"
+./mvnw spring-boot:run
+```
+
+Windows PowerShell:
+
+```powershell
+$env:JWT_SIGNING_SECRET = "<generated-key>"
+.\mvnw.cmd spring-boot:run
+```
+
+Windows Command Prompt:
+
+```bat
+set JWT_SIGNING_SECRET=<generated-key>
+mvnw.cmd spring-boot:run
+```
+
+You can also set this environment variable in your IDE run configuration. The variable must be set for packaged JAR runs as well.
+
 To connect to the H2 console, use:
 
 - JDBC URL: `jdbc:h2:mem:bookstoredb`
