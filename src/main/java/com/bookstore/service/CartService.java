@@ -15,5 +15,7 @@ public interface CartService {
 
     Cart getOrCreateCartEntity(Long userId);
 
+    Cart getOrCreateCartEntityForUpdate(Long userId);
+
     void clearCart(Long userId);
 }

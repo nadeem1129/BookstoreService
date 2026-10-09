@@ -18,6 +18,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -55,17 +56,49 @@ class OrderServiceImplTest {
     }
 
     @Test
-    void checkoutDoesNotReturnAnotherUsersOrderForSameKey() {
+    void checkoutWithSameKeyAndNoExistingOrderLocksCartBeforeProcessing() {
         Long userId = 2L;
         String key = "checkout-123";
         User user = User.builder().id(userId).build();
         when(orderRepository.findByUserIdAndIdempotencyKey(userId, key))
                 .thenReturn(Optional.empty());
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-        when(cartService.getOrCreateCartEntity(userId)).thenReturn(new Cart(user));
+        when(cartService.getOrCreateCartEntityForUpdate(userId)).thenReturn(new Cart(user));
 
         assertThrows(EmptyCartException.class, () -> orderService.checkout(userId, key));
 
-        verify(orderRepository).findByUserIdAndIdempotencyKey(userId, key);
+        verify(orderRepository, times(2)).findByUserIdAndIdempotencyKey(userId, key);
+        verify(cartService).getOrCreateCartEntityForUpdate(userId);
+    }
+
+    @Test
+    void checkoutWithoutIdempotencyKeyStillLocksCart() {
+        Long userId = 2L;
+        User user = User.builder().id(userId).build();
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(cartService.getOrCreateCartEntityForUpdate(userId)).thenReturn(new Cart(user));
+
+        assertThrows(EmptyCartException.class, () -> orderService.checkout(userId, null));
+
+        verify(cartService).getOrCreateCartEntityForUpdate(userId);
+    }
+
+    @Test
+    void concurrentRetryReturnsOrderFoundAfterCartLock() {
+        Long userId = 3L;
+        String key = "checkout-456";
+        User user = User.builder().id(userId).build();
+        Order existingOrder = new Order();
+        existingOrder.setId(43L);
+        when(orderRepository.findByUserIdAndIdempotencyKey(userId, key))
+                .thenReturn(Optional.empty(), Optional.of(existingOrder));
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(cartService.getOrCreateCartEntityForUpdate(userId)).thenReturn(new Cart(user));
+
+        var result = orderService.checkout(userId, key);
+
+        assertEquals(43L, result.id());
+        verify(orderRepository, times(2)).findByUserIdAndIdempotencyKey(userId, key);
+        verify(cartService).getOrCreateCartEntityForUpdate(userId);
     }
 }
