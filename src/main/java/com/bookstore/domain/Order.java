@@ -15,8 +15,6 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
 public class Order {
 
     @Id
@@ -28,24 +26,40 @@ public class Order {
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    @Builder.Default
     private OrderStatus status = OrderStatus.CREATED;
 
     @Column(nullable = false, precision = 12, scale = 2)
-    @Builder.Default
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Column(name = "idempotency_key")
     private String idempotencyKey;
 
     @Column(nullable = false, updatable = false)
-    @Builder.Default
     private Instant createdAt = Instant.now();
+
+    @Builder
+    public Order(User user) {
+        this.user = user;
+    }
+
+    public void setStatus(OrderStatus status) {
+        if (status == null) {
+            throw new IllegalArgumentException("Order status cannot be null");
+        }
+        if (this.status == status) {
+            return;
+        }
+        if (this.status != OrderStatus.CREATED
+                || (status != OrderStatus.PAID && status != OrderStatus.CANCELLED)) {
+            throw new IllegalStateException(
+                    "Cannot transition order status from " + this.status + " to " + status);
+        }
+        this.status = status;
+    }
 
     public void addItem(OrderItem item) {
         item.setOrder(this);
@@ -56,7 +70,11 @@ public class Order {
         this.totalAmount = items.stream().map(OrderItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     public void markPaid() {
-        this.status = OrderStatus.PAID;
+        setStatus(OrderStatus.PAID);
+    }
+
+    public void cancel() {
+        setStatus(OrderStatus.CANCELLED);
     }
 
 }
