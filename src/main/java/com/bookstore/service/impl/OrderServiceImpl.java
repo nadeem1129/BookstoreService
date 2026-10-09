@@ -3,11 +3,13 @@ package com.bookstore.service.impl;
 import com.bookstore.domain.Book;
 import com.bookstore.domain.Cart;
 import com.bookstore.domain.Order;
+import com.bookstore.domain.OrderStatus;
 import com.bookstore.domain.User;
 import com.bookstore.dto.OrderDto;
 import com.bookstore.exception.DuplicateResourceException;
 import com.bookstore.exception.EmptyCartException;
 import com.bookstore.exception.InsufficientStockException;
+import com.bookstore.exception.PaymentFailedException;
 import com.bookstore.exception.ResourceNotFoundException;
 import com.bookstore.mapper.DtoMapper;
 import com.bookstore.repository.BookRepository;
@@ -16,6 +18,7 @@ import com.bookstore.repository.UserRepository;
 import com.bookstore.service.CartService;
 import com.bookstore.service.OrderService;
 import com.bookstore.service.order.OrderFactory;
+import com.bookstore.service.payment.PaymentProcessor;
 import com.bookstore.service.pricing.PricingService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -35,19 +38,22 @@ public class OrderServiceImpl implements OrderService {
     private final CartService cartService;
     private final OrderFactory orderFactory;
     private final PricingService pricingService;
+    private final PaymentProcessor paymentProcessor;
 
     public OrderServiceImpl(OrderRepository orderRepository,
                             BookRepository bookRepository,
                             UserRepository userRepository,
                             CartService cartService,
                             OrderFactory orderFactory,
-                            PricingService pricingService) {
+                            PricingService pricingService,
+                            PaymentProcessor paymentProcessor) {
         this.orderRepository = orderRepository;
         this.bookRepository = bookRepository;
         this.userRepository = userRepository;
         this.cartService = cartService;
         this.orderFactory = orderFactory;
         this.pricingService = pricingService;
+        this.paymentProcessor = paymentProcessor;
     }
 
     @Override
@@ -109,7 +115,6 @@ public class OrderServiceImpl implements OrderService {
         Order order = orderFactory.createOrder(user, cart, lockedBooks);
         order.setTotalAmount(pricingService.calculateTotal(order.getTotalAmount()));
         order.setIdempotencyKey(idempotencyKey);
-        order.markPaid();
 
 
 
@@ -125,6 +130,30 @@ public class OrderServiceImpl implements OrderService {
             throw new DuplicateResourceException(
                     "A checkout with this idempotency key has already been processed");
         }
+    }
+
+    @Override
+    @Transactional
+    public OrderDto pay(Long userId, Long orderId) {
+        Order order = orderRepository.findByIdForUpdate(orderId)
+                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
+        if (!order.getUser().getId().equals(userId)) {
+            throw new ResourceNotFoundException("Order", orderId);
+        }
+        if (order.getStatus() == OrderStatus.PAID) {
+            return DtoMapper.toOrderDto(order);
+        }
+        if (order.getStatus() != OrderStatus.CREATED) {
+            throw new IllegalStateException("Order cannot be paid from status " + order.getStatus());
+        }
+        if (!paymentProcessor.processPayment(order)) {
+            throw new PaymentFailedException(orderId);
+        }
+
+        order.markPaid();
+        log.info("ORDER_PAYMENT_SUCCESS userId={} orderId={} total={}",
+                userId, order.getId(), order.getTotalAmount());
+        return DtoMapper.toOrderDto(order);
     }
 
     @Override
