@@ -26,6 +26,11 @@ public class GlobalExceptionHandler {
         return build(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
+    @ExceptionHandler(PaymentFailedException.class)
+    public ResponseEntity<ApiError> handlePaymentFailed(PaymentFailedException ex, HttpServletRequest request){
+        return build(HttpStatus.PAYMENT_REQUIRED, ex.getMessage(), request);
+    }
+
     @ExceptionHandler(EmptyCartException.class)
     public ResponseEntity<ApiError> handleEmptyCartException(EmptyCartException ex, HttpServletRequest request){
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
@@ -34,6 +39,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<ApiError> handleIllegalArgumentException(IllegalArgumentException ex, HttpServletRequest request){
         return build(HttpStatus.BAD_REQUEST, ex.getMessage(), request);
+    }
+
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiError> handleIllegalStateException(IllegalStateException ex, HttpServletRequest request){
+        return build(HttpStatus.CONFLICT, ex.getMessage(), request);
     }
 
     @ExceptionHandler({BadCredentialsException.class, AuthenticationException.class})
