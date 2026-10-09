@@ -2,7 +2,9 @@ package com.bookstore.dto;
 
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
+import lombok.Builder;
 
+@Builder
 public record AddToCartRequest(
         @NotNull(message = "bookId is required")
         Long bookId,

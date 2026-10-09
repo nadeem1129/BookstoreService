@@ -11,12 +11,15 @@ import java.util.stream.Collectors;
 public class OrderFactory {
 
     public Order createOrder(User user, Cart cart, Map<Long, Book> lockedBooks) {
-        Order order = new Order();
-        order.setUser(user);
+        Order order = Order.builder().user(user).build();
 
         cart.getItems().forEach(cartItem -> {
             Book book = lockedBooks.get(cartItem.getBook().getId());
-            OrderItem orderItem = new OrderItem(book, cartItem.getQuantity(), book.getPrice());
+            OrderItem orderItem = OrderItem.builder()
+                    .book(book)
+                    .quantity(cartItem.getQuantity())
+                    .unitPrice(book.getPrice())
+                    .build();
             order.addItem(orderItem);
 
         });

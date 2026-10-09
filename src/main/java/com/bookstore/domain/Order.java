@@ -1,9 +1,7 @@
 package com.bookstore.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -17,6 +15,8 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Order {
 
     @Id
@@ -28,19 +28,23 @@ public class Order {
     private User user;
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
     private List<OrderItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
+    @Builder.Default
     private OrderStatus status = OrderStatus.CREATED;
 
     @Column(nullable = false, precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
     @Column(name = "idempotency_key")
     private String idempotencyKey;
 
     @Column(nullable = false, updatable = false)
+    @Builder.Default
     private Instant createdAt = Instant.now();
 
     public void addItem(OrderItem item) {
