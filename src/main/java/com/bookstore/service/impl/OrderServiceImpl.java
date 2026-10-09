@@ -54,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDto checkout(Long userId, String idempotencyKey) {
         if (idempotencyKey != null && ! idempotencyKey.isBlank()) {
-            Order existing = orderRepository.findByIdempotencyKey(idempotencyKey).orElse(null);
+            Order existing = orderRepository.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElse(null);
             if (existing != null) {
                 log.info("ORDER_CHECKOUT_IDEMPOTENT_HIT userId={} orderId={} key={}",
                         userId, existing.getId(), idempotencyKey);
@@ -64,7 +64,18 @@ public class OrderServiceImpl implements OrderService {
         }
 
         User user = requireUser(userId);
-        Cart cart = cartService.getOrCreateCartEntity(userId);
+        Cart cart = cartService.getOrCreateCartEntityForUpdate(userId);
+
+        // Recheck after taking the cart lock so concurrent retries can return the committed order.
+        if (idempotencyKey != null && !idempotencyKey.isBlank()) {
+            Order existing = orderRepository.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElse(null);
+            if (existing != null) {
+                log.info("ORDER_CHECKOUT_IDEMPOTENT_HIT userId={} orderId={} key={}",
+                        userId, existing.getId(), idempotencyKey);
+                return DtoMapper.toOrderDto(existing);
+            }
+        }
+
         if (cart.isEmpty()) {
             throw new EmptyCartException();
         }

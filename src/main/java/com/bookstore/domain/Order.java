@@ -1,9 +1,7 @@
 package com.bookstore.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -11,7 +9,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "orders")
+@Table(name = "orders", uniqueConstraints = {
+        @UniqueConstraint(name = "uk_orders_user_idempotency_key", columnNames = {"user_id", "idempotency_key"})
+})
 @Getter
 @Setter
 @NoArgsConstructor
@@ -35,11 +35,31 @@ public class Order {
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount = BigDecimal.ZERO;
 
-    @Column(name = "idempotency_key", unique = true)
+    @Column(name = "idempotency_key")
     private String idempotencyKey;
 
     @Column(nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
+
+    @Builder
+    public Order(User user) {
+        this.user = user;
+    }
+
+    public void setStatus(OrderStatus status) {
+        if (status == null) {
+            throw new IllegalArgumentException("Order status cannot be null");
+        }
+        if (this.status == status) {
+            return;
+        }
+        if (this.status != OrderStatus.CREATED
+                || (status != OrderStatus.PAID && status != OrderStatus.CANCELLED)) {
+            throw new IllegalStateException(
+                    "Cannot transition order status from " + this.status + " to " + status);
+        }
+        this.status = status;
+    }
 
     public void addItem(OrderItem item) {
         item.setOrder(this);
@@ -50,7 +70,11 @@ public class Order {
         this.totalAmount = items.stream().map(OrderItem::getLineTotal).reduce(BigDecimal.ZERO, BigDecimal::add);
     }
     public void markPaid() {
-        this.status = OrderStatus.PAID;
+        setStatus(OrderStatus.PAID);
+    }
+
+    public void cancel() {
+        setStatus(OrderStatus.CANCELLED);
     }
 
 }

@@ -100,6 +100,12 @@ public class CartServiceImpl implements CartService {
 
     }
 
+    @Override
+    public Cart getOrCreateCartEntityForUpdate(Long userId) {
+        return cartRepository.findByUserIdForUpdate(userId)
+                .orElseGet(() -> cartRepository.save(new Cart(requireUser(userId))));
+    }
+
     private void validateQuantityBounds(int quantity) {
         if (quantity > maxQuantityPerItem) {
             throw new IllegalArgumentException(

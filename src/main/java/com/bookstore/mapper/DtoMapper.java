@@ -13,45 +13,52 @@ public final class DtoMapper {
     private DtoMapper(){}
 
     public static BookDto toBookDto(Book book){
-        return new BookDto(
-                book.getId(),
-                book.getTitle(),
-                book.getAuthor(),
-                book.getIsbn(),
-                book.getDescription(),
-                book.getPrice(),
-                book.getStock()
-        );
+        return BookDto.builder()
+                .id(book.getId())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .isbn(book.getIsbn())
+                .description(book.getDescription())
+                .price(book.getPrice())
+                .stock(book.getStock())
+                .build();
     }
 
     public static CartDto toCartDto(Cart cart) {
         List<CartDto.CartItemDto> items = cart.getItems().stream()
-                .map(item -> new CartDto.CartItemDto(
-                        item.getBook().getId(),
-                        item.getBook().getTitle(),
-                        item.getBook().getAuthor(),
-                        item.getBook().getPrice(),
-                        item.getQuantity(),
-                        item.getLineTotal()))
+                .map(item -> CartDto.CartItemDto.builder()
+                        .bookId(item.getBook().getId())
+                        .title(item.getBook().getTitle())
+                        .author(item.getBook().getAuthor())
+                        .unitPrice(item.getBook().getPrice())
+                        .quantity(item.getQuantity())
+                        .lineTotal(item.getLineTotal())
+                        .build())
                 .toList();
-        return new CartDto(cart.getId(), items, cart.getsubtotal());
+        return CartDto.builder()
+                .id(cart.getId())
+                .items(items)
+                .subtotal(cart.getsubtotal())
+                .build();
     }
 
         public static OrderDto toOrderDto(Order order) {
             List<OrderDto.OrderItemDto> items = order.getItems().stream()
-                    .map(item -> new OrderDto.OrderItemDto(
-                            item.getBook().getId(),
-                            item.getBook().getTitle(),
-                            item.getQuantity(),
-                            item.getUnitPrice(),
-                            item.getLineTotal()))
+                    .map(item -> OrderDto.OrderItemDto.builder()
+                            .bookId(item.getBook().getId())
+                            .title(item.getBook().getTitle())
+                            .quantity(item.getQuantity())
+                            .unitPrice(item.getUnitPrice())
+                            .lineTotal(item.getLineTotal())
+                            .build())
                     .toList();
-            return new OrderDto(
-                    order.getId(),
-                    order.getStatus(),
-                    order.getTotalAmount(),
-                    order.getCreatedAt(),
-                    items);
+            return OrderDto.builder()
+                    .id(order.getId())
+                    .status(order.getStatus())
+                    .totalAmount(order.getTotalAmount())
+                    .createdAt(order.getCreatedAt())
+                    .items(items)
+                    .build();
 
         }
 

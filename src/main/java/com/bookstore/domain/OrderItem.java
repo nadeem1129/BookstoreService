@@ -1,9 +1,7 @@
 package com.bookstore.domain;
 
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
 import java.math.BigDecimal;
 
@@ -12,6 +10,8 @@ import java.math.BigDecimal;
 @Setter
 @Getter
 @NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class OrderItem {
 
     @Id

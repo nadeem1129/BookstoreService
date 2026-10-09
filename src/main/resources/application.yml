@@ -9,7 +9,7 @@ spring:
     password: ""
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     show-sql: false
     properties:
       hibernate:
@@ -20,13 +20,13 @@ spring:
       mode: always
   h2:
     console:
-      enabled: true
+      enabled: false
       path: /h2-console
 
 app:
   security:
     jwt:
-      secret: 4a7420f8e8b937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b
+      secret: ${JWT_SIGNING_SECRET}
       expiration-ms: 3600000 # 1 hour in milliseconds
   cors:
     allowed-origins: "http://localhost:3000"
