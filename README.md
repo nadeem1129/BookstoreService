@@ -109,9 +109,12 @@ Authorization: Bearer <your-jwt-token>
 
 ### Orders
 
-- `POST /api/orders/checkout` - Checkout current cart
+- `POST /api/orders/checkout` - Create an order from the current cart (initially `CREATED`)
+- `POST /api/orders/{id}/payment` - Explicitly attempt payment and mark the order `PAID` after approval
 - `GET /api/orders` - Get all orders for the current user
 - `GET /api/orders/{id}` - Get order by ID
+
+Payments use a development stub outside the `prod` profile. It approves payment attempts without collecting money; production requires a real `PaymentProcessor` implementation.
 
 ## Run tests
 
