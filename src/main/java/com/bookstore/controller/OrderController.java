@@ -31,6 +31,11 @@ public class OrderController {
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
 
+    @PostMapping("/{id}/payment")
+    public ResponseEntity<OrderDto> pay(@PathVariable Long id) {
+        return ResponseEntity.ok(orderService.pay(SecurityUtils.currentUserId(), id));
+    }
+
     @GetMapping
     public ResponseEntity<List<OrderDto>> getMyOrders() {
         return ResponseEntity.ok(orderService.getOrdersForUser(SecurityUtils.currentUserId()));
