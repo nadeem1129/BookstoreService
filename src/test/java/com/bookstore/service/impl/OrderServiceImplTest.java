@@ -6,6 +6,7 @@ import com.bookstore.domain.Order;
 import com.bookstore.domain.OrderStatus;
 import com.bookstore.domain.User;
 import com.bookstore.exception.EmptyCartException;
+import com.bookstore.exception.InsufficientStockException;
 import com.bookstore.exception.PaymentFailedException;
 import com.bookstore.repository.BookRepository;
 import com.bookstore.repository.OrderRepository;
@@ -27,6 +28,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.when;
 
 class OrderServiceImplTest {
@@ -117,6 +119,31 @@ class OrderServiceImplTest {
 
         assertEquals(OrderStatus.CREATED, result.status());
         verify(cartService).clearCart(userId);
+        org.mockito.Mockito.verifyNoInteractions(paymentProcessor);
+    }
+
+    @Test
+    void checkoutWithInsufficientStockDoesNotCreateOrderOrClearCart() {
+        Long userId = 9L;
+        User user = User.builder().id(userId).build();
+        Book book = Book.builder()
+                .id(49L)
+                .title("Limited book")
+                .price(new BigDecimal("15.00"))
+                .stock(1)
+                .build();
+        Cart cart = new Cart(user);
+        cart.addItem(book, 2);
+        when(userRepository.findById(userId)).thenReturn(Optional.of(user));
+        when(cartService.getOrCreateCartEntityForUpdate(userId)).thenReturn(cart);
+        when(bookRepository.findAllByIdForUpdate(List.of(book.getId()))).thenReturn(List.of(book));
+
+        assertThrows(InsufficientStockException.class, () -> orderService.checkout(userId, "stock-failure"));
+
+        assertEquals(1, book.getStock());
+        assertEquals(1, cart.getItems().size());
+        verify(orderRepository, never()).saveAndFlush(any(Order.class));
+        verify(cartService, never()).clearCart(userId);
         org.mockito.Mockito.verifyNoInteractions(paymentProcessor);
     }
 
