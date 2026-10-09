@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepository extends JpaRepository<Order, Long> {
-    Optional<Order> findByIdempotencyKey(String idempotencyKey);
+    Optional<Order> findByUserIdAndIdempotencyKey(Long userId, String idempotencyKey);
     List<Order> findByUserIdOrderByCreatedAtDesc(Long userId);
 }

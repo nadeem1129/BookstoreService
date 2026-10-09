@@ -54,7 +54,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional
     public OrderDto checkout(Long userId, String idempotencyKey) {
         if (idempotencyKey != null && ! idempotencyKey.isBlank()) {
-            Order existing = orderRepository.findByIdempotencyKey(idempotencyKey).orElse(null);
+            Order existing = orderRepository.findByUserIdAndIdempotencyKey(userId, idempotencyKey).orElse(null);
             if (existing != null) {
                 log.info("ORDER_CHECKOUT_IDEMPOTENT_HIT userId={} orderId={} key={}",
                         userId, existing.getId(), idempotencyKey);
