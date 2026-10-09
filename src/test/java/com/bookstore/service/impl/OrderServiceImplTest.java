@@ -8,6 +8,7 @@ import com.bookstore.domain.User;
 import com.bookstore.exception.EmptyCartException;
 import com.bookstore.exception.InsufficientStockException;
 import com.bookstore.exception.PaymentFailedException;
+import com.bookstore.exception.ResourceNotFoundException;
 import com.bookstore.repository.BookRepository;
 import com.bookstore.repository.OrderRepository;
 import com.bookstore.repository.UserRepository;
@@ -222,5 +223,34 @@ class OrderServiceImplTest {
         assertThrows(IllegalStateException.class, () -> orderService.pay(userId, orderId));
 
         org.mockito.Mockito.verifyNoInteractions(paymentProcessor);
+    }
+
+    @Test
+    void paymentCannotBeAttemptedByAnotherUser() {
+        Long orderId = 48L;
+        Order order = Order.builder().user(User.builder().id(100L).build()).build();
+        order.setId(orderId);
+        when(orderRepository.findByIdForUpdate(orderId)).thenReturn(Optional.of(order));
+
+        assertThrows(ResourceNotFoundException.class, () -> orderService.pay(101L, orderId));
+
+        org.mockito.Mockito.verifyNoInteractions(paymentProcessor);
+    }
+
+    @Test
+    void getOrderHidesOrdersOwnedByAnotherUser() {
+        Long orderId = 49L;
+        Order order = Order.builder().user(User.builder().id(200L).build()).build();
+        order.setId(orderId);
+        when(orderRepository.findById(orderId)).thenReturn(Optional.of(order));
+
+        assertThrows(ResourceNotFoundException.class, () -> orderService.getOrder(201L, orderId));
+    }
+
+    @Test
+    void getOrderReturnsNotFoundForMissingOrder() {
+        when(orderRepository.findById(500L)).thenReturn(Optional.empty());
+
+        assertThrows(ResourceNotFoundException.class, () -> orderService.getOrder(202L, 500L));
     }
 }
