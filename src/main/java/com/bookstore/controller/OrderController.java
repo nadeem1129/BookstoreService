@@ -26,7 +26,7 @@ public class OrderController {
 
     @PostMapping("/checkout")
     public ResponseEntity<OrderDto> checkout(
-            @RequestHeader(value = "Idempotency-Key", required = false) String idempotencykey) {
+            @RequestHeader(value = "Idempotency-Key", required = true) String idempotencykey) {
         OrderDto order = orderService.checkout(SecurityUtils.currentUserId(), idempotencykey);
         return ResponseEntity.status(HttpStatus.CREATED).body(order);
     }
