@@ -1,5 +1,6 @@
 package com.bookstore.config;
 
+import com.bookstore.security.CustomAuthenticationEntryPoint;
 import com.bookstore.security.JwtAuthenticationFilter;
 import com.bookstore.security.JwtTokenProvider;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,11 +27,13 @@ public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
     private final String allowedorigins;
+    private final CustomAuthenticationEntryPoint authenticationEntryPoint;
 
     public SecurityConfig(JwtTokenProvider jwtTokenProvider,
-                          @Value("${app.cors.allowed-origins}") String allowedorigins) {
+                          @Value("${app.cors.allowed-origins}") String allowedorigins, CustomAuthenticationEntryPoint customAuthenticationEntryPoint) {
         this.jwtTokenProvider = jwtTokenProvider;
         this.allowedorigins = allowedorigins;
+        this.authenticationEntryPoint = customAuthenticationEntryPoint;
     }
 
         @Bean
@@ -46,7 +49,8 @@ public class SecurityConfig {
                      // Allow H2 console frames during local development.
                     .headers(headers -> headers.frameOptions(frame -> frame.sameOrigin()))
                     .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider),
-                            UsernamePasswordAuthenticationFilter.class);
+                            UsernamePasswordAuthenticationFilter.class)
+                    .exceptionHandling(exception -> exception.authenticationEntryPoint(authenticationEntryPoint));
             return http.build();
         }
 
