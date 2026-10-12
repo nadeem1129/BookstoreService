@@ -19,7 +19,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -30,7 +29,7 @@ import java.util.List;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Order {
+public class Order extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -52,9 +51,6 @@ public class Order {
 
     @Column(name = "idempotency_key")
     private String idempotencyKey;
-
-    @Column(nullable = false, updatable = false)
-    private Instant createdAt = Instant.now();
 
     @Builder
     public Order(User user) {
