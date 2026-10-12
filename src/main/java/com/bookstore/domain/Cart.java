@@ -24,7 +24,7 @@ import java.util.Optional;
 @Setter
 @Getter
 @NoArgsConstructor
-public class Cart {
+public class Cart extends AuditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -68,6 +68,7 @@ public class Cart {
     public boolean isEmpty() {
         return items.isEmpty();
     }
+
     public Optional<CartItem> findItemByBook(Long bookId) {
         return items.stream()
                 .filter(i -> i.getBook().getId().equals(bookId))
