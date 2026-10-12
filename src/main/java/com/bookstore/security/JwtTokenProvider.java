@@ -5,12 +5,14 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import javax.crypto.SecretKey;
 import java.util.Date;
 
 @Component
+@Slf4j
 public class JwtTokenProvider {
 
     private final SecretKey signingkey;
@@ -26,6 +28,7 @@ public class JwtTokenProvider {
     public String generateToken(UserPrincipal principal) {
         Date now = new Date();
         Date expiry = new Date(now.getTime() + expirationMs);
+        log.info("Generating JWT token for user: {}", principal.getUsername());
         return Jwts.builder()
                 .subject(principal.getUsername())
                 .claim("uid", principal.getId())
@@ -41,6 +44,7 @@ public class JwtTokenProvider {
             parse(token);
             return true;
         } catch (JwtException | IllegalArgumentException ex) {
+            log.error("Invalid JWT token: {}", ex.getMessage());
             return false;
         }
     }
