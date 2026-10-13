@@ -19,6 +19,7 @@ public record OrderDto(
     public record OrderItemDto(
             Long bookId,
             String title,
+            String isbn,
             int quantity,
             BigDecimal unitPrice,
             BigDecimal lineTotal

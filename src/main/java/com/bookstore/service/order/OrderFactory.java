@@ -21,6 +21,8 @@ public class OrderFactory {
             Book book = lockedBooks.get(cartItem.getBook().getId());
             OrderItem orderItem = OrderItem.builder()
                     .book(book)
+                    .bookTitle(book.getTitle())
+                    .bookIsbn(book.getIsbn())
                     .quantity(cartItem.getQuantity())
                     .unitPrice(book.getPrice())
                     .build();

@@ -6,6 +6,7 @@ import com.bookstore.domain.Order;
 import com.bookstore.domain.OrderItem;
 import com.bookstore.domain.Role;
 import com.bookstore.domain.User;
+import com.bookstore.mapper.DtoMapper;
 import org.junit.jupiter.api.Test;
 
 import java.math.BigDecimal;
@@ -41,6 +42,17 @@ class OrderFactoryTest {
         assertSame(firstBook, firstItem.getBook());
         assertEquals(2, firstItem.getQuantity());
         assertEquals(new BigDecimal("15.25"), firstItem.getUnitPrice());
+        assertEquals("Book 10", firstItem.getBookTitle());
+        assertEquals("isbn-10", firstItem.getBookIsbn());
+
+        firstBook.setTitle("Renamed later");
+        firstBook.setIsbn("changed-isbn");
+        assertEquals("Book 10", firstItem.getBookTitle());
+        assertEquals("isbn-10", firstItem.getBookIsbn());
+
+        var orderDto = DtoMapper.toOrderDto(order);
+        assertEquals("Book 10", orderDto.items().get(0).title());
+        assertEquals("isbn-10", orderDto.items().get(0).isbn());
     }
 
     @Test
@@ -60,6 +72,7 @@ class OrderFactoryTest {
                 .id(id)
                 .title("Book " + id)
                 .author("Author")
+                .isbn("isbn-" + id)
                 .price(new BigDecimal(price))
                 .stock(10)
                 .build();
