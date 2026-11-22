@@ -175,3 +175,18 @@ chmod +x mvnw
 ## Notes
 
 This project is built for local development and uses an in-memory database, so data resets each time the application restarts.
+
+===== Kafka Commands ===========>>
+https://www.youtube.com/watch?v=tKv4APQnmfM
+
+kafka-storage.bat random-uuid
+
+kafka-storage.bat format -t YOUR_CLUSTER_ID -c config/server.properties
+
+kafka-server-start.bat config/server.properties
+
+kafka-topics.bat --create --topic test-topic --bootstrap-server localhost:9092
+
+kafka-console-producer.bat --topic test-topic --bootstrap-server localhost:9092
+
+kafka-console-consumer.bat --topic test-topic --from-beginning --bootstrap-server localhost:9092
